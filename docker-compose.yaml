@@ -1,0 +1,39 @@
+version: '3'
+services:
+    database:
+        image: postgres:15-alpine
+        ports:
+            - "5432:5432"
+        environment:
+            POSTGRES_DB: 'webmayacert'
+            # You should definitely change the password in production
+            POSTGRES_PASSWORD: 'holamundo'
+            POSTGRES_USER: 'root'
+        volumes:
+            - database_data:/var/lib/postgresql/data:rw
+    webapp:
+        # Se puede usar esta directamente, pero como queremos instalar extensiones
+        # image: php:8.2-fpm
+        # Hay que crear nosotros la imagen
+        build:
+            context: .
+            dockerfile: config/php/Dockerfile
+        volumes:
+            - ./app/MayacertV2:/usr/src/app
+    nginx:
+        image: nginx:latest
+        restart: on-failure
+        ports:
+            - "80:80"
+        volumes:
+            - ./config/nginx.conf:/etc/nginx/conf.d/nginx.conf
+            - ./app/MayacertV2/public:/usr/src/app
+        depends_on:
+            - webapp
+    adminer:
+        image: adminer
+        restart: always
+        ports:
+          - "8080:8080"
+volumes:
+    database_data:

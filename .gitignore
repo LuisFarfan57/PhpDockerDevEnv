@@ -1,0 +1,2 @@
+# Ignore the php app that you cloned
+/app/*/
