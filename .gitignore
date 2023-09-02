@@ -1,2 +1,8 @@
 # Ignore the php app that you cloned
 /app/*/
+
+# System files
+./app/.DS_Store
+.DS_Store
+
+.env

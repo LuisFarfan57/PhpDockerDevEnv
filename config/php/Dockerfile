@@ -1,3 +1,4 @@
+# Change php version if needed
 FROM php:8.2-fpm
 
 WORKDIR /usr/src/app
