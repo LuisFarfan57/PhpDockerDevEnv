@@ -6,3 +6,6 @@
 .DS_Store
 
 .env
+
+# Docker files
+/docker/database/data

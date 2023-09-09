@@ -9,27 +9,58 @@ services:
             POSTGRES_PASSWORD: '${DATABASE_PASSWORD}'
             POSTGRES_USER: '${DATABASE_USER}'
         volumes:
-            - database_data:/var/lib/postgresql/data:rw
+            # - database_data:/var/lib/postgresql/data:rw
+            # You may use a bind-mounted host directory instead, so that it is harder to accidentally remove the volume and lose all your data!
+            - ./docker/database/data:/var/lib/postgresql/data:rw
     webapp:
         build:
-            context: ./config/
+            context: ./docker/
             dockerfile: php/Dockerfile
+        deploy:
+            resources:
+              limits:
+                cpus: '${PHP_CPU_LIMIT}'
+                memory: '${PHP_MEMORY_LIMIT}'
         volumes:
             - ./app/${INTERNAL_APP_DIRECTORY}:/usr/src/app
     nginx:
         image: nginx:latest
         restart: on-failure
         ports:
-            - "80:80"
+            - "${NGINX_PORT}:80"
         volumes:
-            - ./config/nginx/nginx.conf:/etc/nginx/conf.d/nginx.conf
-            - ./app/${INTERNAL_APP_PUBLIC_DIRECTORY}:/usr/src/app
+            - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+            - ./app/${INTERNAL_APP_PUBLIC_DIRECTORY}/:/usr/src/app
         depends_on:
             - webapp
+    # Custom example db management services
     adminer:
         image: adminer
         restart: on-failure
+        environment: 
+            ADMINER_DEFAULT_SERVER: database
         ports:
-          - "8080:8080"
-volumes:
-    database_data:
+          - "${ADMINER_PORT}:8080"
+    # pgadmin:
+    #     image: dpage/pgadmin4:latest
+    #     environment:
+    #         PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
+    #         PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+    #         PGADMIN_CONFIG_SERVER_MODE: 'False'
+    #     volumes:
+    #         - pgadmin:/var/lib/pgadmin
+
+    #     ports:
+    #         - "${PGADMIN_PORT:-5050}:80"
+    #     restart: on-failure
+    # phpmyadmin:
+    #     image: phpmyadmin/phpmyadmin
+    #     environment:
+    #         MYSQL_USERNAME: ${PHPMYADMIN_USER}
+    #         MYSQL_ROOT_PASSWORD: ${PHPMYADMIN_PASSWORD}
+    #     restart: on-failure
+    #     ports:
+    #         - ${PHPMYADMIN_PORT}:80
+# volumes:
+#     database_data:
+    # pgadmin:
